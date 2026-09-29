@@ -7,14 +7,14 @@
     <style>
         :root {
             --bg-body: #f5f5f7;
-            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-bg: rgba(255, 255, 255, 0.94);
             --card-border: rgba(0, 0, 0, 0.08);
             --text-primary: #1d1d1f;
             --text-secondary: #86868b;
             --accent-blue: #0071e3;
             --accent-green: #34c759;
             --accent-red: #ff3b30;
-            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         }
 
         * {
@@ -72,7 +72,7 @@
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 23px;
             font-weight: 700;
             letter-spacing: -0.5px;
             margin-bottom: 8px;
@@ -196,8 +196,6 @@
             font-size: 11.5px;
             font-weight: 700;
             color: var(--text-secondary);
-            display: flex;
-            justify-content: space-between;
         }
 
         .hash-value-box {
@@ -262,7 +260,7 @@
         }
 
         .meta-table td {
-            padding: 8px 4px;
+            padding: 9px 4px;
         }
 
         .meta-key {
@@ -274,6 +272,16 @@
         .meta-val {
             font-family: var(--mono-font);
             word-break: break-all;
+        }
+
+        .gps-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
         }
 
         .btn-sanitize {
@@ -291,7 +299,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-top: 12px;
+            margin-top: 14px;
         }
 
         .btn-danger-outline {
@@ -330,25 +338,25 @@
 <body>
 
     <div class="header">
-        <div style="font-weight: 700; font-size: 15px;">SecOps Studio</div>
+        <div style="font-weight: 700; font-size: 15px;">SecOps Forensic Studio</div>
         <button class="lang-btn" id="langSwitch" onclick="toggleLanguage()">English</button>
     </div>
 
     <div class="app-container">
         <div class="title-section">
-            <h1 id="appTitle">فاحص بصمات الملفات وحاذف الميتاداتا</h1>
+            <h1 id="appTitle">فاحص بصمات الملفات والميتاداتا الجنائية</h1>
             <div class="badge-wrapper">
                 <span class="security-badge" id="securityBadge">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
-                    <span id="securityText">تحليل وتجريد محلي 100% داخل المتصفح</span>
+                    <span id="securityText">قراءة وتجريد محلي للترويسات الثنائية 100%</span>
                 </span>
             </div>
         </div>
 
         <div class="upload-card" id="dropArea">
             <input type="file" id="fileInput" />
-            <div style="font-size: 14.5px; font-weight: 600;" id="uploadPrompt">اضغط أو اسحب أي ملف للفحص والتجريد</div>
-            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;" id="uploadSubPrompt">يدعم كافة صيغ الملفات (صور، مستندات، تنفيذي، وسائط)</div>
+            <div style="font-size: 14.5px; font-weight: 600;" id="uploadPrompt">اضغط أو اسحب أي ملف للفحص الجنائي والتجريد</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;" id="uploadSubPrompt">يستخرج إحداثيات GPS، والكاميرا، والتاريخ الحقيقي، والبصمات الرقمية</div>
         </div>
 
         <div class="results-section" id="resultsSection">
@@ -396,7 +404,7 @@
 
             <div class="metadata-card">
                 <div class="section-header">
-                    <span class="section-title" id="lblMetadata">بيانات EXIF والبيانات الوصفية للملف</span>
+                    <span class="section-title" id="lblMetadata">بيانات EXIF والبيانات الوصفية المستخرجة فعلياً</span>
                     <span id="exifPresenceBadge" style="font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; background: rgba(0,0,0,0.05);">-</span>
                 </div>
 
@@ -406,7 +414,7 @@
 
                 <button class="btn-sanitize" id="btnSanitize" onclick="sanitizeAndDownload()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span id="lblSanitizeBtn">تجريد وحذف الميتاداتا وتنزيل نسخة نظيفة</span>
+                    <span id="lblSanitizeBtn">تجريد وحذف كافة الميتاداتا وتنزيل نسخة نظيفة</span>
                 </button>
             </div>
         </div>
@@ -426,41 +434,43 @@
         const i18n = {
             ar: {
                 langBtn: 'English',
-                appTitle: 'فاحص بصمات الملفات وحاذف الميتاداتا',
-                securityText: 'تحليل وتجريد محلي 100% داخل المتصفح',
-                uploadPrompt: 'اضغط أو اسحب أي ملف للفحص والتجريد',
-                uploadSubPrompt: 'يدعم كافة صيغ الملفات (صور، مستندات، تنفيذي، وسائط)',
+                appTitle: 'فاحص بصمات الملفات والميتاداتا الجنائية',
+                securityText: 'قراءة وتجريد محلي للترويسات الثنائية 100%',
+                uploadPrompt: 'اضغط أو اسحب أي ملف للفحص الجنائي والتجريد',
+                uploadSubPrompt: 'يستخرج إحداثيات GPS، والكاميرا، والتاريخ الحقيقي، والبصمات الرقمية',
                 btnReset: 'فحص ملف آخر',
                 lblHashIntegrity: 'بصمات التجزئة والتكامل (File Integrity Hashes)',
                 lblVerify: 'مطابقة الهاش والتأكد من السلامة:',
                 verifyPlaceholder: 'الصق الهاش المرجعي هنا للمقارنة...',
-                lblMetadata: 'بيانات EXIF والبيانات الوصفية للملف',
-                lblSanitizeBtn: 'تجريد وحذف الميتاداتا وتنزيل نسخة نظيفة',
-                matchSuccess: '✓ الهاش متطابق تماماً - الملف سليم ولم يتم التلاعب به',
-                matchFail: '✕ الهاش غير متطابق - تنبيه لاحتمالية تعديل الملف',
-                exifFound: 'تم اكتشاف ميتاداتا',
-                exifClean: 'خالٍ من الميتاداتا الحساسة',
+                lblMetadata: 'بيانات EXIF والبيانات الوصفية المستخرجة فعلياً',
+                lblSanitizeBtn: 'تجريد وحذف كافة الميتاداتا وتنزيل نسخة نظيفة',
+                matchSuccess: '✓ الهاش متطابق تماماً - الملف سليم ومطابق للأصل',
+                matchFail: '✕ الهاش غير متطابق - الملف معدّل أو تالف',
+                exifFound: 'تم العثور على ترويسات EXIF',
+                exifClean: 'خالٍ من بيانات EXIF (أو غير مدعوم)',
                 copied: 'تم النسخ!',
-                notImage: 'تجريد EXIF التلقائي متاح للصور (JPEG/PNG/WebP)'
+                notImage: 'ميزة التجريد مخصصة لملفات الصور (JPEG/PNG/WebP)',
+                openMap: 'عرض الموقع الجغرافي على Google Maps'
             },
             en: {
                 langBtn: 'العربية',
-                appTitle: 'File Hash & EXIF Inspector',
-                securityText: '100% Client-Side Local Analysis & Stripping',
-                uploadPrompt: 'Drop or select any file to inspect & sanitize',
-                uploadSubPrompt: 'Supports all formats (Images, Docs, Executables, Media)',
+                appTitle: 'SecOps Hash & Forensic EXIF Inspector',
+                securityText: '100% Client-Side Binary Parsing & Sanitization',
+                uploadPrompt: 'Drop or select any file for forensic inspection',
+                uploadSubPrompt: 'Extracts real GPS, camera hardware, true timestamps & hashes',
                 btnReset: 'Inspect Another',
                 lblHashIntegrity: 'File Integrity Hashes',
                 lblVerify: 'Verify Hash Integrity:',
                 verifyPlaceholder: 'Paste reference hash to compare...',
-                lblMetadata: 'EXIF & File Metadata Details',
-                lblSanitizeBtn: 'Strip Metadata & Download Sanitized File',
+                lblMetadata: 'Extracted EXIF & Metadata Details',
+                lblSanitizeBtn: 'Strip All Metadata & Download Clean File',
                 matchSuccess: '✓ Hash match confirmed - File integrity intact',
-                matchFail: '✕ Hash mismatch - File may be altered or corrupted',
-                exifFound: 'Metadata Detected',
-                exifClean: 'Clean / No Metadata Found',
+                matchFail: '✕ Hash mismatch - File altered or corrupted',
+                exifFound: 'EXIF Headers Detected',
+                exifClean: 'Clean / No EXIF Metadata',
                 copied: 'Copied!',
-                notImage: 'Automatic EXIF stripping is optimized for images (JPEG/PNG/WebP)'
+                notImage: 'Sanitization is optimized for image files (JPEG/PNG/WebP)',
+                openMap: 'Open Location on Google Maps'
             }
         };
 
@@ -482,7 +492,10 @@
             document.getElementById('lblMetadata').innerText = t.lblMetadata;
             document.getElementById('lblSanitizeBtn').innerText = t.lblSanitizeBtn;
 
-            if (activeFile) verifyIntegrity();
+            if (activeFile) {
+                analyzeMetadata();
+                verifyIntegrity();
+            }
         }
 
         document.getElementById('fileInput').addEventListener('change', async (e) => {
@@ -532,20 +545,22 @@
             const t = i18n[currentLang];
             const meta = [];
 
-            meta.push({ k: 'File Name', v: activeFile.name });
-            meta.push({ k: 'File Size', v: `${activeFile.size} bytes (${formatBytes(activeFile.size)})` });
-            meta.push({ k: 'MIME Type', v: activeFile.type || 'application/octet-stream' });
-            meta.push({ k: 'Last Modified', v: new Date(activeFile.lastModified).toISOString() });
+            meta.push({ k: 'اسم الملف (File Name)', v: activeFile.name });
+            meta.push({ k: 'الحجم الدقيق (Exact Size)', v: `${activeFile.size.toLocaleString()} Bytes (${formatBytes(activeFile.size)})` });
+            meta.push({ k: 'نوع الوسيط (MIME)', v: activeFile.type || 'application/octet-stream' });
+            meta.push({ k: 'تاريخ حفظ الملف في الجهاز', v: new Date(activeFile.lastModified).toLocaleString() });
 
             let exifFound = false;
+            let realExif = null;
 
-            if (activeFile.type.startsWith('image/')) {
-                const exifData = extractExifHeader(new DataView(activeBuffer));
-                if (exifData && Object.keys(exifData).length > 0) {
-                    exifFound = true;
-                    for (let key in exifData) {
-                        meta.push({ k: `EXIF: ${key}`, v: exifData[key] });
-                    }
+            if (activeFile.type.includes('jpeg') || activeFile.type.includes('jpg') || activeFile.name.toLowerCase().endsWith('.jpg') || activeFile.name.toLowerCase().endsWith('.jpeg')) {
+                realExif = parseRealExif(activeBuffer);
+            }
+
+            if (realExif && Object.keys(realExif).length > 0) {
+                exifFound = true;
+                for (let [key, val] of Object.entries(realExif)) {
+                    meta.push({ k: key, v: val, isHtml: key.includes('GPS') });
                 }
             }
 
@@ -560,38 +575,168 @@
             });
         }
 
-        function extractExifHeader(view) {
-            try {
-                if (view.getUint16(0, false) !== 0xFFD8) return null;
-                let length = view.byteLength, offset = 2;
-                while (offset < length) {
-                    if (view.getUint16(offset + 2, false) <= 0) break;
-                    let marker = view.getUint16(offset, false);
+        // محلل ثنائي حقيقي لترويسات TIFF / EXIF بالكامل
+        function parseRealExif(buffer) {
+            const dataView = new DataView(buffer);
+            if (dataView.getUint16(0, false) !== 0xFFD8) return null; // ليس JPEG
+
+            let offset = 2;
+            const length = buffer.byteLength;
+
+            while (offset < length) {
+                const marker = dataView.getUint16(offset, false);
+                offset += 2;
+
+                if (marker === 0xFFE1) { // APP1 Marker (EXIF)
+                    const app1Length = dataView.getUint16(offset, false);
                     offset += 2;
-                    if (marker === 0xFFE1) {
-                        if (view.getUint32(offset += 2, false) !== 0x45786966) return null;
-                        const little = view.getUint16(offset += 6, false) === 0x4949;
-                        offset += view.getUint32(offset + 4, little);
-                        const tags = view.getUint16(offset, little);
-                        offset += 2;
-                        const parsed = {};
-                        for (let i = 0; i < tags; i++) {
-                            const tagId = view.getUint16(offset + (i * 12), little);
-                            if (tagId === 0x010F) parsed['Make'] = 'Camera Vendor Data Present';
-                            if (tagId === 0x0110) parsed['Model'] = 'Device Model Detected';
-                            if (tagId === 0x0132) parsed['DateTime'] = 'Timestamp Recorded';
-                            if (tagId === 0x8825) parsed['GPSInfo'] = 'GeoLocation Coordinates Found';
-                            if (tagId === 0x0131) parsed['Software'] = 'Editor Software Signature';
-                        }
-                        return parsed;
-                    } else {
-                        offset += view.getUint16(offset, false);
+
+                    // التحقق من ترويسة Exif\0\0
+                    if (dataView.getUint32(offset, false) === 0x45786966 && dataView.getUint16(offset + 4, false) === 0x0000) {
+                        return readTiffHeader(dataView, offset + 6);
                     }
+                    offset += app1Length - 2;
+                } else if ((marker & 0xFF00) === 0xFF00 && marker !== 0xFFD8 && marker !== 0xFFD9) {
+                    offset += dataView.getUint16(offset, false);
+                } else {
+                    break;
                 }
-            } catch (e) {
-                return null;
             }
             return null;
+        }
+
+        function readTiffHeader(view, tiffOffset) {
+            const byteOrder = view.getUint16(tiffOffset, false);
+            let little = false;
+            if (byteOrder === 0x4949) little = true; // Intel (Little Endian)
+            else if (byteOrder === 0x4D4D) little = false; // Motorola (Big Endian)
+            else return null;
+
+            if (view.getUint16(tiffOffset + 2, little) !== 0x002A) return null;
+
+            const firstIFDOffset = view.getUint32(tiffOffset + 4, little);
+            if (firstIFDOffset < 8) return null;
+
+            const tags = {};
+            readIFD(view, tiffOffset, tiffOffset + firstIFDOffset, little, tags);
+            return tags;
+        }
+
+        function readIFD(view, tiffOffset, dirOffset, little, tags) {
+            if (dirOffset + 2 > view.byteLength) return;
+            const entries = view.getUint16(dirOffset, little);
+
+            let exifSubIFDOffset = 0;
+            let gpsSubIFDOffset = 0;
+
+            for (let i = 0; i < entries; i++) {
+                const entryOffset = dirOffset + 2 + (i * 12);
+                if (entryOffset + 12 > view.byteLength) break;
+
+                const tag = view.getUint16(entryOffset, little);
+                const type = view.getUint16(entryOffset + 2, little);
+                const count = view.getUint32(entryOffset + 4, little);
+                const valOffset = entryOffset + 8;
+
+                if (tag === 0x8769) {
+                    exifSubIFDOffset = view.getUint32(valOffset, little);
+                } else if (tag === 0x8825) {
+                    gpsSubIFDOffset = view.getUint32(valOffset, little);
+                } else {
+                    const parsedVal = readTagValue(view, tiffOffset, valOffset, type, count, little);
+                    if (parsedVal !== null) {
+                        mapTagName(tag, parsedVal, tags);
+                    }
+                }
+            }
+
+            if (exifSubIFDOffset > 0) {
+                readIFD(view, tiffOffset, tiffOffset + exifSubIFDOffset, little, tags);
+            }
+            if (gpsSubIFDOffset > 0) {
+                readGPSIFD(view, tiffOffset, tiffOffset + gpsSubIFDOffset, little, tags);
+            }
+        }
+
+        function readGPSIFD(view, tiffOffset, dirOffset, little, tags) {
+            if (dirOffset + 2 > view.byteLength) return;
+            const entries = view.getUint16(dirOffset, little);
+
+            let latRef = 'N', lonRef = 'E';
+            let latDeg = null, lonDeg = null;
+
+            for (let i = 0; i < entries; i++) {
+                const entryOffset = dirOffset + 2 + (i * 12);
+                if (entryOffset + 12 > view.byteLength) break;
+
+                const tag = view.getUint16(entryOffset, little);
+                const type = view.getUint16(entryOffset + 2, little);
+                const count = view.getUint32(entryOffset + 4, little);
+                const valOffset = entryOffset + 8;
+
+                if (tag === 1) latRef = String.fromCharCode(view.getUint8(valOffset));
+                if (tag === 2) latDeg = readRationalArray(view, tiffOffset, valOffset, count, little);
+                if (tag === 3) lonRef = String.fromCharCode(view.getUint8(valOffset));
+                if (tag === 4) lonDeg = readRationalArray(view, tiffOffset, valOffset, count, little);
+            }
+
+            if (latDeg && lonDeg && latDeg.length === 3 && lonDeg.length === 3) {
+                let lat = latDeg[0] + (latDeg[1] / 60) + (latDeg[2] / 3600);
+                if (latRef === 'S') lat = -lat;
+                let lon = lonDeg[0] + (lonDeg[1] / 60) + (lonDeg[2] / 3600);
+                if (lonRef === 'W') lon = -lon;
+
+                const t = i18n[currentLang];
+                tags['إحداثيات GPS الفعلية'] = `${lat.toFixed(6)}, ${lon.toFixed(6)} <br><a class="gps-link" href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener noreferrer">${t.openMap} ↗</a>`;
+            }
+        }
+
+        function readRationalArray(view, tiffOffset, valOffset, count, little) {
+            const dataOffset = tiffOffset + view.getUint32(valOffset, little);
+            const vals = [];
+            for (let i = 0; i < count; i++) {
+                const num = view.getUint32(dataOffset + (i * 8), little);
+                const den = view.getUint32(dataOffset + (i * 8) + 4, little);
+                vals.push(den === 0 ? 0 : num / den);
+            }
+            return vals;
+        }
+
+        function readTagValue(view, tiffOffset, valOffset, type, count, little) {
+            if (type === 2) { // ASCII
+                const offset = count > 4 ? tiffOffset + view.getUint32(valOffset, little) : valOffset;
+                let str = '';
+                for (let i = 0; i < count - 1; i++) {
+                    const c = view.getUint8(offset + i);
+                    if (c === 0) break;
+                    str += String.fromCharCode(c);
+                }
+                return str.trim();
+            } else if (type === 3) { // SHORT
+                return view.getUint16(valOffset, little);
+            } else if (type === 4) { // LONG
+                return view.getUint32(valOffset, little);
+            } else if (type === 5) { // RATIONAL
+                const offset = tiffOffset + view.getUint32(valOffset, little);
+                const num = view.getUint32(offset, little);
+                const den = view.getUint32(offset + 4, little);
+                return den === 0 ? 0 : (num / den).toFixed(2);
+            }
+            return null;
+        }
+
+        function mapTagName(tag, val, tags) {
+            switch(tag) {
+                case 0x010F: tags['الشركة المصنعة للكاميرا (Make)'] = val; break;
+                case 0x0110: tags['طراز الجهاز الفعلي (Model)'] = val; break;
+                case 0x0131: tags['برنامج التعديل / النظام (Software)'] = val; break;
+                case 0x9003: tags['تاريخ ووقت الالتقاط الحقيقي (DateTimeOriginal)'] = val; break;
+                case 0x0132: tags['تاريخ تعديل الصورة (ModifyDate)'] = val; break;
+                case 0x829A: tags['سرعة الغالق (ExposureTime)'] = `1/${Math.round(1/val)}s`; break;
+                case 0x829D: tags['فتحة العدسة (F-Number)'] = `f/${val}`; break;
+                case 0x8827: tags['حساسية الضوء (ISO)'] = val; break;
+                case 0x920A: tags['البعد البؤري (FocalLength)'] = `${val} mm`; break;
+            }
         }
 
         async function sanitizeAndDownload() {
@@ -620,7 +765,7 @@
                     a.click();
                     URL.revokeObjectURL(cleanUrl);
                     URL.revokeObjectURL(url);
-                }, activeFile.type, 0.95);
+                }, activeFile.type, 0.98);
             };
         }
 
@@ -674,6 +819,7 @@
             document.getElementById('resultsSection').style.display = 'none';
         }
 
+        // تطبيق خوارزمية MD5 القياسية
         function md5Cycle(data) {
             function safeAdd(x, y) { const lsw = (x & 0xffff) + (y & 0xffff); return (((x >> 16) + (y >> 16) + (lsw >> 16)) << 16) | (lsw & 0xffff); }
             function bitRol(n, c) { return (n << c) | (n >>> (32 - c)); }
