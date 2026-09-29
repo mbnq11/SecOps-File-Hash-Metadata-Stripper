@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="html-tag">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SecOps Hash & EXIF Inspector</title>
+    <style>
+        :root {
+            --bg-body: #f5f5f7;
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent-blue: #0071e3;
+            --accent-green: #34c759;
+            --accent-red: #ff3b30;
+            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 820px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .lang-btn {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            padding: 6px 14px;
+            border-radius: 980px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 820px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 24px 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            margin-bottom: 24px;
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .badge-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .security-badge {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(52, 199, 89, 0.35);
+            color: #248a3d;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 980px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .upload-card {
+            border: 2px dashed rgba(0, 113, 227, 0.3);
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 30px 16px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .upload-card:hover {
+            border-color: var(--accent-blue);
+            background: #fbfbfd;
+        }
+
+        .upload-card input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 22px;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .file-banner {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .file-details {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-meta-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            font-family: var(--mono-font);
+        }
+
+        .hash-card, .metadata-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .section-title {
+            font-size: 14.5px;
+            font-weight: 700;
+        }
+
+        .hash-row {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .hash-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hash-value-box {
+            display: flex;
+            background: #fbfbfd;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-family: var(--mono-font);
+            font-size: 12px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .verify-box {
+            background: #fbfbfd;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 14px;
+        }
+
+        .verify-box input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-family: var(--mono-font);
+            font-size: 12px;
+            outline: none;
+            background: #ffffff;
+        }
+
+        .verify-status {
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+
+        .meta-table tr {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .meta-table td {
+            padding: 8px 4px;
+        }
+
+        .meta-key {
+            font-weight: 600;
+            color: var(--text-secondary);
+            width: 38%;
+        }
+
+        .meta-val {
+            font-family: var(--mono-font);
+            word-break: break-all;
+        }
+
+        .btn-sanitize {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn-danger-outline {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--accent-red);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer .email-link {
+            color: var(--text-secondary);
+            font-size: 12px;
+            direction: ltr;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="font-weight: 700; font-size: 15px;">SecOps Studio</div>
+        <button class="lang-btn" id="langSwitch" onclick="toggleLanguage()">English</button>
+    </div>
+
+    <div class="app-container">
+        <div class="title-section">
+            <h1 id="appTitle">فاحص بصمات الملفات وحاذف الميتاداتا</h1>
+            <div class="badge-wrapper">
+                <span class="security-badge" id="securityBadge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                    <span id="securityText">تحليل وتجريد محلي 100% داخل المتصفح</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="upload-card" id="dropArea">
+            <input type="file" id="fileInput" />
+            <div style="font-size: 14.5px; font-weight: 600;" id="uploadPrompt">اضغط أو اسحب أي ملف للفحص والتجريد</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;" id="uploadSubPrompt">يدعم كافة صيغ الملفات (صور، مستندات، تنفيذي، وسائط)</div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="file-banner">
+                <div class="file-details">
+                    <div class="file-name" id="dispFileName">-</div>
+                    <div class="file-meta-tags">
+                        <span id="dispFileSize">-</span> • <span id="dispFileType">-</span>
+                    </div>
+                </div>
+                <button class="btn-danger-outline" onclick="resetApp()" id="btnReset">فحص ملف آخر</button>
+            </div>
+
+            <div class="hash-card">
+                <div class="section-header">
+                    <span class="section-title" id="lblHashIntegrity">بصمات التجزئة والتكامل (File Integrity Hashes)</span>
+                </div>
+
+                <div class="hash-row">
+                    <div class="hash-label"><span>SHA-256</span></div>
+                    <div class="hash-value-box"><span id="hashSha256">...</span><button class="copy-btn" onclick="copyValue('hashSha256')">نسخ</button></div>
+                </div>
+
+                <div class="hash-row">
+                    <div class="hash-label"><span>SHA-1</span></div>
+                    <div class="hash-value-box"><span id="hashSha1">...</span><button class="copy-btn" onclick="copyValue('hashSha1')">نسخ</button></div>
+                </div>
+
+                <div class="hash-row">
+                    <div class="hash-label"><span>MD5</span></div>
+                    <div class="hash-value-box"><span id="hashMd5">...</span><button class="copy-btn" onclick="copyValue('hashMd5')">نسخ</button></div>
+                </div>
+
+                <div class="hash-row">
+                    <div class="hash-label"><span>SHA-512</span></div>
+                    <div class="hash-value-box"><span id="hashSha512">...</span><button class="copy-btn" onclick="copyValue('hashSha512')">نسخ</button></div>
+                </div>
+
+                <div class="verify-box">
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;" id="lblVerify">مطابقة الهاش والتأكد من السلامة:</label>
+                    <input type="text" id="verifyHashInput" placeholder="الصق الهاش المرجعي هنا للمقارنة..." oninput="verifyIntegrity()">
+                    <div class="verify-status" id="verifyStatus"></div>
+                </div>
+            </div>
+
+            <div class="metadata-card">
+                <div class="section-header">
+                    <span class="section-title" id="lblMetadata">بيانات EXIF والبيانات الوصفية للملف</span>
+                    <span id="exifPresenceBadge" style="font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; background: rgba(0,0,0,0.05);">-</span>
+                </div>
+
+                <table class="meta-table" id="metaTable">
+                    <tbody id="metaTableBody"></tbody>
+                </table>
+
+                <button class="btn-sanitize" id="btnSanitize" onclick="sanitizeAndDownload()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span id="lblSanitizeBtn">تجريد وحذف الميتاداتا وتنزيل نسخة نظيفة</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div><a href="https://linkedin.com/in/mbnq" target="_blank" rel="noopener noreferrer">LinkedIn: mbnq</a></div>
+        <div><a class="email-link" href="mailto:mbnq1@outlook.com">mbnq1@outlook.com</a></div>
+    </div>
+
+    <script>
+        let currentLang = 'ar';
+        let activeFile = null;
+        let activeBuffer = null;
+        let extractedHashes = {};
+
+        const i18n = {
+            ar: {
+                langBtn: 'English',
+                appTitle: 'فاحص بصمات الملفات وحاذف الميتاداتا',
+                securityText: 'تحليل وتجريد محلي 100% داخل المتصفح',
+                uploadPrompt: 'اضغط أو اسحب أي ملف للفحص والتجريد',
+                uploadSubPrompt: 'يدعم كافة صيغ الملفات (صور، مستندات، تنفيذي، وسائط)',
+                btnReset: 'فحص ملف آخر',
+                lblHashIntegrity: 'بصمات التجزئة والتكامل (File Integrity Hashes)',
+                lblVerify: 'مطابقة الهاش والتأكد من السلامة:',
+                verifyPlaceholder: 'الصق الهاش المرجعي هنا للمقارنة...',
+                lblMetadata: 'بيانات EXIF والبيانات الوصفية للملف',
+                lblSanitizeBtn: 'تجريد وحذف الميتاداتا وتنزيل نسخة نظيفة',
+                matchSuccess: '✓ الهاش متطابق تماماً - الملف سليم ولم يتم التلاعب به',
+                matchFail: '✕ الهاش غير متطابق - تنبيه لاحتمالية تعديل الملف',
+                exifFound: 'تم اكتشاف ميتاداتا',
+                exifClean: 'خالٍ من الميتاداتا الحساسة',
+                copied: 'تم النسخ!',
+                notImage: 'تجريد EXIF التلقائي متاح للصور (JPEG/PNG/WebP)'
+            },
+            en: {
+                langBtn: 'العربية',
+                appTitle: 'File Hash & EXIF Inspector',
+                securityText: '100% Client-Side Local Analysis & Stripping',
+                uploadPrompt: 'Drop or select any file to inspect & sanitize',
+                uploadSubPrompt: 'Supports all formats (Images, Docs, Executables, Media)',
+                btnReset: 'Inspect Another',
+                lblHashIntegrity: 'File Integrity Hashes',
+                lblVerify: 'Verify Hash Integrity:',
+                verifyPlaceholder: 'Paste reference hash to compare...',
+                lblMetadata: 'EXIF & File Metadata Details',
+                lblSanitizeBtn: 'Strip Metadata & Download Sanitized File',
+                matchSuccess: '✓ Hash match confirmed - File integrity intact',
+                matchFail: '✕ Hash mismatch - File may be altered or corrupted',
+                exifFound: 'Metadata Detected',
+                exifClean: 'Clean / No Metadata Found',
+                copied: 'Copied!',
+                notImage: 'Automatic EXIF stripping is optimized for images (JPEG/PNG/WebP)'
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            const t = i18n[currentLang];
+            document.getElementById('html-tag').dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            document.getElementById('html-tag').lang = currentLang;
+
+            document.getElementById('langSwitch').innerText = t.langBtn;
+            document.getElementById('appTitle').innerText = t.appTitle;
+            document.getElementById('securityText').innerText = t.securityText;
+            document.getElementById('uploadPrompt').innerText = t.uploadPrompt;
+            document.getElementById('uploadSubPrompt').innerText = t.uploadSubPrompt;
+            document.getElementById('btnReset').innerText = t.btnReset;
+            document.getElementById('lblHashIntegrity').innerText = t.lblHashIntegrity;
+            document.getElementById('lblVerify').innerText = t.lblVerify;
+            document.getElementById('verifyHashInput').placeholder = t.verifyPlaceholder;
+            document.getElementById('lblMetadata').innerText = t.lblMetadata;
+            document.getElementById('lblSanitizeBtn').innerText = t.lblSanitizeBtn;
+
+            if (activeFile) verifyIntegrity();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            activeFile = file;
+            activeBuffer = await file.arrayBuffer();
+            processFile();
+        });
+
+        async function processFile() {
+            document.getElementById('dropArea').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'flex';
+
+            document.getElementById('dispFileName').innerText = activeFile.name;
+            document.getElementById('dispFileSize').innerText = formatBytes(activeFile.size);
+            document.getElementById('dispFileType').innerText = activeFile.type || 'Unknown MIME';
+
+            await computeAllHashes();
+            analyzeMetadata();
+        }
+
+        async function computeAllHashes() {
+            const sha256Buf = await crypto.subtle.digest('SHA-256', activeBuffer);
+            extractedHashes.sha256 = bufToHex(sha256Buf);
+            document.getElementById('hashSha256').innerText = extractedHashes.sha256;
+
+            const sha1Buf = await crypto.subtle.digest('SHA-1', activeBuffer);
+            extractedHashes.sha1 = bufToHex(sha1Buf);
+            document.getElementById('hashSha1').innerText = extractedHashes.sha1;
+
+            const sha512Buf = await crypto.subtle.digest('SHA-512', activeBuffer);
+            extractedHashes.sha512 = bufToHex(sha512Buf);
+            document.getElementById('hashSha512').innerText = extractedHashes.sha512;
+
+            extractedHashes.md5 = md5Cycle(new Uint8Array(activeBuffer));
+            document.getElementById('hashMd5').innerText = extractedHashes.md5;
+        }
+
+        function bufToHex(buffer) {
+            return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function analyzeMetadata() {
+            const tbody = document.getElementById('metaTableBody');
+            tbody.innerHTML = '';
+            const t = i18n[currentLang];
+            const meta = [];
+
+            meta.push({ k: 'File Name', v: activeFile.name });
+            meta.push({ k: 'File Size', v: `${activeFile.size} bytes (${formatBytes(activeFile.size)})` });
+            meta.push({ k: 'MIME Type', v: activeFile.type || 'application/octet-stream' });
+            meta.push({ k: 'Last Modified', v: new Date(activeFile.lastModified).toISOString() });
+
+            let exifFound = false;
+
+            if (activeFile.type.startsWith('image/')) {
+                const exifData = extractExifHeader(new DataView(activeBuffer));
+                if (exifData && Object.keys(exifData).length > 0) {
+                    exifFound = true;
+                    for (let key in exifData) {
+                        meta.push({ k: `EXIF: ${key}`, v: exifData[key] });
+                    }
+                }
+            }
+
+            const badge = document.getElementById('exifPresenceBadge');
+            badge.innerText = exifFound ? t.exifFound : t.exifClean;
+            badge.style.color = exifFound ? 'var(--accent-red)' : 'var(--accent-green)';
+
+            meta.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="meta-key">${item.k}</td><td class="meta-val">${item.v}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function extractExifHeader(view) {
+            try {
+                if (view.getUint16(0, false) !== 0xFFD8) return null;
+                let length = view.byteLength, offset = 2;
+                while (offset < length) {
+                    if (view.getUint16(offset + 2, false) <= 0) break;
+                    let marker = view.getUint16(offset, false);
+                    offset += 2;
+                    if (marker === 0xFFE1) {
+                        if (view.getUint32(offset += 2, false) !== 0x45786966) return null;
+                        const little = view.getUint16(offset += 6, false) === 0x4949;
+                        offset += view.getUint32(offset + 4, little);
+                        const tags = view.getUint16(offset, little);
+                        offset += 2;
+                        const parsed = {};
+                        for (let i = 0; i < tags; i++) {
+                            const tagId = view.getUint16(offset + (i * 12), little);
+                            if (tagId === 0x010F) parsed['Make'] = 'Camera Vendor Data Present';
+                            if (tagId === 0x0110) parsed['Model'] = 'Device Model Detected';
+                            if (tagId === 0x0132) parsed['DateTime'] = 'Timestamp Recorded';
+                            if (tagId === 0x8825) parsed['GPSInfo'] = 'GeoLocation Coordinates Found';
+                            if (tagId === 0x0131) parsed['Software'] = 'Editor Software Signature';
+                        }
+                        return parsed;
+                    } else {
+                        offset += view.getUint16(offset, false);
+                    }
+                }
+            } catch (e) {
+                return null;
+            }
+            return null;
+        }
+
+        async function sanitizeAndDownload() {
+            const t = i18n[currentLang];
+            if (!activeFile.type.startsWith('image/')) {
+                alert(t.notImage);
+                return;
+            }
+
+            const img = new Image();
+            const url = URL.createObjectURL(activeFile);
+            img.src = url;
+
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                canvas.toBlob((blob) => {
+                    const cleanUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = cleanUrl;
+                    a.download = `sanitized_${activeFile.name}`;
+                    a.click();
+                    URL.revokeObjectURL(cleanUrl);
+                    URL.revokeObjectURL(url);
+                }, activeFile.type, 0.95);
+            };
+        }
+
+        function verifyIntegrity() {
+            const input = document.getElementById('verifyHashInput').value.trim().toLowerCase();
+            const status = document.getElementById('verifyStatus');
+            const t = i18n[currentLang];
+
+            if (!input) {
+                status.style.display = 'none';
+                return;
+            }
+
+            const values = Object.values(extractedHashes).map(v => v.toLowerCase());
+            status.style.display = 'block';
+
+            if (values.includes(input)) {
+                status.innerText = t.matchSuccess;
+                status.style.color = 'var(--accent-green)';
+            } else {
+                status.innerText = t.matchFail;
+                status.style.color = 'var(--accent-red)';
+            }
+        }
+
+        function copyValue(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text);
+            const t = i18n[currentLang];
+            const original = event.target.innerText;
+            event.target.innerText = t.copied;
+            setTimeout(() => { event.target.innerText = original; }, 1200);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function resetApp() {
+            activeFile = null;
+            activeBuffer = null;
+            extractedHashes = {};
+            document.getElementById('fileInput').value = '';
+            document.getElementById('verifyHashInput').value = '';
+            document.getElementById('verifyStatus').style.display = 'none';
+            document.getElementById('dropArea').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+
+        function md5Cycle(data) {
+            function safeAdd(x, y) { const lsw = (x & 0xffff) + (y & 0xffff); return (((x >> 16) + (y >> 16) + (lsw >> 16)) << 16) | (lsw & 0xffff); }
+            function bitRol(n, c) { return (n << c) | (n >>> (32 - c)); }
+            function cmn(q, a, b, x, s, t) { return safeAdd(bitRol(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b); }
+            function ff(a, b, c, d, x, s, t) { return cmn((b & c) | (~b & d), a, b, x, s, t); }
+            function gg(a, b, c, d, x, s, t) { return cmn((b & d) | (c & ~d), a, b, x, s, t); }
+            function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+            function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | ~d), a, b, x, s, t); }
+
+            let n = data.length;
+            let nWords = (((n + 8) >> 6) + 1) * 16;
+            let words = new Int32Array(nWords);
+            for (let i = 0; i < n; i++) words[i >> 2] |= data[i] << ((i % 4) * 8);
+            words[n >> 2] |= 0x80 << ((n % 4) * 8);
+            words[nWords - 2] = n * 8;
+
+            let a = 1732584193, b = -271733879, c = -1732584194, d = 271733878;
+            for (let i = 0; i < nWords; i += 16) {
+                let olda = a, oldb = b, oldc = c, oldd = d;
+                a = ff(a, b, c, d, words[i], 7, -680876936); d = ff(d, a, b, c, words[i + 1], 12, -389564586);
+                c = ff(c, d, a, b, words[i + 2], 17, 606105819); b = ff(b, c, d, a, words[i + 3], 22, -1044525330);
+                a = ff(a, b, c, d, words[i + 4], 7, -176418897); d = ff(d, a, b, c, words[i + 5], 12, 1200080426);
+                c = ff(c, d, a, b, words[i + 6], 17, -1473231341); b = ff(b, c, d, a, words[i + 7], 22, -45705983);
+                a = ff(a, b, c, d, words[i + 8], 7, 1770035416); d = ff(d, a, b, c, words[i + 9], 12, -1958414417);
+                c = ff(c, d, a, b, words[i + 10], 17, -42063); b = ff(b, c, d, a, words[i + 11], 22, -1990404162);
+                a = ff(a, b, c, d, words[i + 12], 7, 1804603682); d = ff(d, a, b, c, words[i + 13], 12, -40341101);
+                c = ff(c, d, a, b, words[i + 14], 17, -1502002290); b = ff(b, c, d, a, words[i + 15], 22, 1236535329);
+
+                a = gg(a, b, c, d, words[i + 1], 5, -165796510); d = gg(d, a, b, c, words[i + 6], 9, -1069501632);
+                c = gg(c, d, a, b, words[i + 11], 14, 643717713); b = gg(b, c, d, a, words[i], 20, -373897302);
+                a = gg(a, b, c, d, words[i + 5], 5, -701558691); d = gg(d, a, b, c, words[i + 10], 9, 38016083);
+                c = gg(c, d, a, b, words[i + 15], 14, -660478335); b = gg(b, c, d, a, words[i + 4], 20, -405537848);
+                a = gg(a, b, c, d, words[i + 9], 5, 568446438); d = gg(d, a, b, c, words[i + 14], 9, -1019803690);
+                c = gg(c, d, a, b, words[i + 3], 14, -187363961); b = gg(b, c, d, a, words[i + 8], 20, 1163531501);
+                a = gg(a, b, c, d, words[i + 13], 5, -1444681467); d = gg(d, a, b, c, words[i + 2], 9, -51403784);
+                c = gg(c, d, a, b, words[i + 7], 14, 1735328473); b = gg(b, c, d, a, words[i + 12], 20, -1926607734);
+
+                a = hh(a, b, c, d, words[i + 5], 4, -378558); d = hh(d, a, b, c, words[i + 8], 11, -2022574463);
+                c = hh(c, d, a, b, words[i + 11], 16, 1839030562); b = hh(b, c, d, a, words[i + 14], 23, -35309556);
+                a = hh(a, b, c, d, words[i + 1], 4, -1530992060); d = hh(d, a, b, c, words[i + 4], 11, 1272893353);
+                c = hh(c, d, a, b, words[i + 7], 16, -155497632); b = hh(b, c, d, a, words[i + 10], 23, -1094730640);
+                a = hh(a, b, c, d, words[i + 13], 4, 681279174); d = hh(d, a, b, c, words[i], 11, -358537222);
+                c = hh(c, d, a, b, words[i + 3], 16, -722521979); b = hh(b, c, d, a, words[i + 6], 23, 76029189);
+                a = hh(a, b, c, d, words[i + 9], 4, -640364487); d = hh(d, a, b, c, words[i + 12], 11, -421815835);
+                c = hh(c, d, a, b, words[i + 15], 16, 530742520); b = hh(b, c, d, a, words[i + 2], 23, -995338651);
+
+                a = ii(a, b, c, d, words[i], 6, -198630844); d = ii(d, a, b, c, words[i + 7], 10, 1126891415);
+                c = ii(c, d, a, b, words[i + 14], 15, -1416354905); b = ii(b, c, d, a, words[i + 5], 21, -57434055);
+                a = ii(a, b, c, d, words[i + 12], 6, 1700485571); d = ii(d, a, b, c, words[i + 3], 10, -1894986606);
+                c = ii(c, d, a, b, words[i + 10], 15, -1051523); b = ii(b, c, d, a, words[i + 1], 21, -2054922799);
+                a = ii(a, b, c, d, words[i + 8], 6, 1873313359); d = ii(d, a, b, c, words[i + 15], 10, -30611744);
+                c = ii(c, d, a, b, words[i + 6], 15, -1560198380); b = ii(b, c, d, a, words[i + 13], 21, 1309151649);
+                a = ii(a, b, c, d, words[i + 4], 6, -145523070); d = ii(d, a, b, c, words[i + 11], 10, -1120210379);
+                c = ii(c, d, a, b, words[i + 2], 15, 718787259); b = ii(b, c, d, a, words[i + 9], 21, -343485551);
+
+                a = safeAdd(a, olda); b = safeAdd(b, oldb); c = safeAdd(c, oldc); d = safeAdd(d, oldd);
+            }
+
+            const hexChars = '0123456789abcdef';
+            let out = '';
+            for (let v of [a, b, c, d]) {
+                for (let j = 0; j < 4; j++) {
+                    out += hexChars.charAt((v >> (j * 8 + 4)) & 0x0F) + hexChars.charAt((v >> (j * 8)) & 0x0F);
+                }
+            }
+            return out;
+        }
+    </script>
+</body>
+</html>
